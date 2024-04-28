@@ -1,24 +1,23 @@
+
 import 'package:date_format/date_format.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:martialartconnect/components/comment.dart';
 import 'package:martialartconnect/components/like_animation.dart';
 import 'package:martialartconnect/data/firebase_service/firestore.dart';
-import 'package:martialartconnect/pages/profile_page.dart';
 import 'package:martialartconnect/utils/cached_image.dart';
 
-class WallPost extends StatefulWidget {
+class PostWidget extends StatefulWidget {
   final snapshot;
-
-  const WallPost(this.snapshot, {super.key});
+  PostWidget(this.snapshot, {super.key});
 
   @override
-  State<WallPost> createState() => _WallPostState();
+  State<PostWidget> createState() => _PostWidgetState();
 }
 
-class _WallPostState extends State<WallPost> {
+class _PostWidgetState extends State<PostWidget> {
+  @override
   bool isAnimating = false;
-
   String user = '';
   final FirebaseAuth _auth = FirebaseAuth.instance;
   @override
@@ -32,7 +31,7 @@ class _WallPostState extends State<WallPost> {
     return Column(
       children: [
         Container(
-          width: 425,
+          width: 375,
           height: 54,
           color: Colors.white,
           child: Center(
@@ -44,27 +43,18 @@ class _WallPostState extends State<WallPost> {
                   child: CachedImage(widget.snapshot['profileImage']),
                 ),
               ),
-              title: GestureDetector(
-                onTap: () => {
-                   Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (context) =>
-                                        ProfilePage(Uid: widget.snapshot['uid']),
-                                  ))
-                },
-                child: Text(
-                  widget.snapshot['username'],
-                  style: const TextStyle(fontSize: 13),
-                ),
+              title: Text(
+                widget.snapshot['username'],
+                style: TextStyle(fontSize: 13),
               ),
               subtitle: Text(
                 widget.snapshot['location'],
-                style: const TextStyle(fontSize: 11),
+                style: TextStyle(fontSize: 11),
               ),
               trailing: const Icon(Icons.more_horiz),
             ),
           ),
         ),
-        const SizedBox(height: 10,),
         GestureDetector(
           onDoubleTap: () {
             Firebase_Firestor().like(
@@ -79,47 +69,46 @@ class _WallPostState extends State<WallPost> {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              SizedBox(
-                width: 425,
-                height: 425,
+              Container(
+                width: 375,
+                height: 375,
                 child: CachedImage(
                   widget.snapshot['postImage'],
                 ),
               ),
               AnimatedOpacity(
-                duration: const Duration(milliseconds: 200),
+                duration: Duration(milliseconds: 200),
                 opacity: isAnimating ? 1 : 0,
                 child: LikeAnimation(
+                  child: Icon(
+                    Icons.favorite,
+                    size: 100,
+                    color: Colors.red,
+                  ),
                   isAnimating: isAnimating,
-                  duration: const Duration(milliseconds: 400),
+                  duration: Duration(milliseconds: 400),
                   iconlike: false,
                   End: () {
                     setState(() {
                       isAnimating = false;
                     });
                   },
-                  child: const Icon(
-                    Icons.favorite,
-                    size: 100,
-                    color: Colors.red,
-                  ),
                 ),
               )
             ],
           ),
         ),
         Container(
-          width: 425,
+          width: 375,
           color: Colors.white,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 14),
+              SizedBox(height: 14),
               Row(
                 children: [
-                  const SizedBox(width: 14),
+                  SizedBox(width: 14),
                   LikeAnimation(
-                    isAnimating: widget.snapshot['like'].contains(user),
                     child: IconButton(
                       onPressed: () {
                         Firebase_Firestor().like(
@@ -138,22 +127,9 @@ class _WallPostState extends State<WallPost> {
                         size: 24,
                       ),
                     ),
+                    isAnimating: widget.snapshot['like'].contains(user),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: 0,
-                      top: 4,
-                      bottom: 8,
-                    ),
-                    child: Text(
-                      widget.snapshot['like'].length.toString(),
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 17),
+                  SizedBox(width: 17),
                   GestureDetector(
                     onTap: () {
                       showBottomSheet(
@@ -198,6 +174,20 @@ class _WallPostState extends State<WallPost> {
                 ],
               ),
               Padding(
+                padding: EdgeInsets.only(
+                  left: 30,
+                  top: 4,
+                  bottom: 8,
+                ),
+                child: Text(
+                  widget.snapshot['like'].length.toString(),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Padding(
                 padding: EdgeInsets.symmetric(horizontal: 15),
                 child: Row(
                   children: [
@@ -206,7 +196,7 @@ class _WallPostState extends State<WallPost> {
                         widget.snapshot['username'] +
                             ' :  ' +
                             widget.snapshot['caption'],
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
                         ),
@@ -216,11 +206,11 @@ class _WallPostState extends State<WallPost> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.only(left: 15, top: 20, bottom: 8),
+                padding: EdgeInsets.only(left: 15, top: 20, bottom: 8),
                 child: Text(
                   formatDate(widget.snapshot['time'].toDate(),
                       [yyyy, '-', mm, '-', dd]),
-                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                  style: TextStyle(fontSize: 11, color: Colors.grey),
                 ),
               ),
             ],

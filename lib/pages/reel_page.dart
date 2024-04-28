@@ -1,0 +1,41 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:martialartconnect/components/reel_item.dart';
+
+class ReelPage extends StatefulWidget {
+  const ReelPage({super.key});
+
+  @override
+  State<ReelPage> createState() => _ReelPageState();
+}
+
+class _ReelPageState extends State<ReelPage> {
+  @override
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  Widget build(BuildContext context) {
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      body: SafeArea(
+        child: StreamBuilder(
+          stream: _firestore
+              .collection('reels')
+              .orderBy('time', descending: true)
+              .snapshots(),
+          builder: (context, snapshot) {
+            return PageView.builder(
+              scrollDirection: Axis.vertical,
+              controller: PageController(initialPage: 0, viewportFraction: 1),
+              itemBuilder: (context, index) {
+                if (!snapshot.hasData) {
+                  return const CircularProgressIndicator();
+                }
+                return ReelsItem(snapshot.data!.docs[index].data());
+              },
+              itemCount: snapshot.data == null ? 0 : snapshot.data!.docs.length,
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
