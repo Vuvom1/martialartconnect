@@ -1,6 +1,6 @@
 // import 'package:flutter';
 
-import 'package:martialartconnect/models/user_model.dart';
+import 'package:martialartconnect/data/model/user_model.dart';
 
 class Message  {
   final String sender;
@@ -18,8 +18,8 @@ class Message  {
   });
 }
 
-final User currentUser = User(
-  id: 0, 
-  name: 'Current User', 
-  imageUrl: 'assets/images/greg.jpg',
-);
+// final User currentUser = User(
+//   id: 0, 
+//   username: 'Current User', 
+//   imageUrl: 'assets/images/greg.jpg',
+// );

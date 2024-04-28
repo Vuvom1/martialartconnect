@@ -1,152 +1,170 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:martialartconnect/components/button.dart';
-import 'package:martialartconnect/components/text_field.dart';
+import 'dart:io';
 
+import 'package:flutter/material.dart';
+import 'package:martialartconnect/components/textfild.dart';
+import 'package:martialartconnect/data/firebase_service/firebase_auth.dart';
+import 'package:martialartconnect/utils/dialog.dart';
+import 'package:martialartconnect/utils/exception.dart';
+import 'package:martialartconnect/utils/imagepicker.dart';
 class RegisterPage extends StatefulWidget {
-  final Function()? onTap;
-  const RegisterPage({super.key, required this.onTap});
-  
+  final VoidCallback show;
+  RegisterPage(this.show, {super.key});
+
   @override
   State<RegisterPage> createState() => _RegisterPageState();
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final emailTextController = TextEditingController();
-  final passwordTextController = TextEditingController();
-  final confirmPasswordTextController = TextEditingController();
+  final email = TextEditingController();
+  FocusNode email_F = FocusNode();
+  final password = TextEditingController();
+  FocusNode password_F = FocusNode();
+  final passwordConfirme = TextEditingController();
+  FocusNode passwordConfirme_F = FocusNode();
+  final username = TextEditingController();
+  FocusNode username_F = FocusNode();
+  final bio = TextEditingController();
+  FocusNode bio_F = FocusNode();
+  File? _imageFile;
 
-  void signUp() async{
-    showDialog(
-      context: context, 
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
-
-    if (passwordTextController.text != confirmPasswordTextController.text) {
-      Navigator.pop(context);
-
-      displayMessage("Passwords don't match!");
-
-      return;
-    }
-
-    try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: emailTextController.text, 
-        password: passwordTextController.text,
-        );
-
-      if (context.mounted) Navigator.pop(context);
-    } on FirebaseAuthException catch(e) {
-      Navigator.pop(context);
-      displayMessage(e.code);
-    }
-
-  }
-
-  void displayMessage(String message) {
-    showDialog(
-      context: context, 
-      builder: (context) => AlertDialog(
-        title: Text(message),
-      ),
-      );
-  }
-  
   @override
+  void dispose() {
+    super.dispose();
+    email.dispose();
+    password.dispose();
+    passwordConfirme.dispose();
+    username.dispose();
+    bio.dispose();
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[300],
+      resizeToAvoidBottomInset: false,
+      backgroundColor: Colors.white,
       body: SafeArea(
-          
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 25.0),
-            child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-
-              const SizedBox(height: 50),
-
-              const Icon(
-                Icons.lock,
-                size: 100,
-              ),
-
-              const SizedBox(
-                height: 50,
-              ),
-
-              const Text(
-                "Welcome back, you've been missed!",
-              ),
-
-              const SizedBox(height: 25),
-
-              MyTextField(
-                controller: emailTextController,
-                hintText: 'Email',
-                obscureText: false,
-              ),
-
-              const SizedBox(height: 10),
-
-              MyTextField(
-                controller: passwordTextController,
-                hintText: 'Password',
-                obscureText: true,
-              ),
-
-              const SizedBox(height: 10),
-
-              MyTextField(
-                controller: confirmPasswordTextController,
-                hintText: 'Confirm Password',
-                obscureText: true,
-              ),
-
-              const SizedBox(height: 20),
-
-              MyButton(onTap: signUp, text:'Sign Up'),
-
-              const SizedBox(height: 20),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Have registered",
-                    style: TextStyle(
-                      color: Colors.grey[700],
-                    ),
-                  ),
-
-                  const SizedBox(width: 4,),
-
-                  GestureDetector(
-                    onTap: widget.onTap,
-                    child: const Text(
-                      "Sign in?",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
+        child: Column(
+          children: [
+            SizedBox(height: 20),
+            Center(
+              child: Image.asset('images/logo.png', height: 200,),
+            ),
+            SizedBox(height: 30),
+            InkWell(
+              onTap: () async {
+                File _imagefile = await ImagePickerr().uploadImage('gallery');
+                setState(() {
+                  _imageFile = _imagefile;
+                });
+              },
+              child: CircleAvatar(
+                radius: 36,
+                backgroundColor: Colors.grey,
+                child: _imageFile == null
+                    ? CircleAvatar(
+                        radius: 34,
+                        backgroundImage: AssetImage('images/person.png'),
+                        backgroundColor: Colors.grey.shade200,
+                      )
+                    : CircleAvatar(
+                        radius: 34,
+                        backgroundImage: Image.file(
+                          _imageFile!,
+                          fit: BoxFit.cover,
+                        ).image,
+                        backgroundColor: Colors.grey.shade200,
                       ),
-                    ),
-                  ),
-
-                ],
               ),
-
-            ],
-          ),
-          ),
-        
+            ),
+            SizedBox(height: 40),
+            Textfild(email, email_F, 'Email', Icons.email),
+            SizedBox(height: 15),
+            Textfild(username, username_F, 'username', Icons.person),
+            SizedBox(height: 15),
+            Textfild(bio, bio_F, 'bio', Icons.abc),
+            SizedBox(height: 15),
+            Textfild(password, password_F, 'Password', Icons.lock),
+            SizedBox(height: 15),
+            Textfild(passwordConfirme, passwordConfirme_F, 'PasswordConfirme',
+                Icons.lock),
+            SizedBox(height: 15),
+            Signup(),
+            SizedBox(height: 15),
+            Have()
+          ],
         ),
-      
       ),
     );
   }
+
+  Widget Have() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Text(
+            "Don you have account?  ",
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey,
+            ),
+          ),
+          GestureDetector(
+            onTap: widget.show,
+            child: Text(
+              "Login ",
+              style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget Signup() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 10),
+      child: InkWell(
+        onTap: () async {
+          try {
+            await Authentication().Signup(
+              email: email.text,
+              password: password.text,
+              passwordConfirme: passwordConfirme.text,
+              username: username.text,
+              bio: bio.text,
+              profile: _imageFile ?? File(''),
+            );
+          } on exceptions catch (e) {
+            // ignore: use_build_context_synchronously
+            if (mounted) {
+            dialogBuilder(context, e.message);
+            }
+          }
+        },
+        child: Container(
+          alignment: Alignment.center,
+          width: double.infinity,
+          height: 44,
+          decoration: BoxDecoration(
+            color: Colors.black,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            'Sign up',
+            style: TextStyle(
+              fontSize: 23,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   
 }

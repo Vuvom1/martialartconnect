@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:martialartconnect/components/text_field.dart';
 import 'package:martialartconnect/components/wall_post.dart';
 
 class HomePage extends StatefulWidget {
@@ -12,80 +11,62 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final currentUser = FirebaseAuth.instance.currentUser!;
-
-  final textController = TextEditingController();
-
-  final emailTextController = TextEditingController();
-
-  void signOut() {
-    FirebaseAuth.instance.signOut();
-  }
-
-  void postMessage() {
-    if (textController.text.isNotEmpty) {
-      FirebaseFirestore.instance.collection("User Posts").add({
-        'UserEmail': currentUser.email,
-        'Message': textController.text,
-        'TimeStamp': Timestamp.now(),
-        'Likes': [],
-      });
-    }
-
-    setState(() {
-      textController.clear();
-    });
-  }
-
+  FirebaseAuth _auth = FirebaseAuth.instance;
+  FirebaseFirestore _firebaseFirestore = FirebaseFirestore.instance;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Matial Art Connect'),
-        actions: [
-          IconButton(onPressed: signOut, icon: const Icon(Icons.logout))
+        centerTitle: false,
+        elevation: 0,
+        title: SizedBox(
+          child: Image.asset(
+            './images/logo.png', 
+            width: 250,
+            )
+        ),
+        // leading: Image.asset('images/fighter.png'),
+        actions: const [
+          Icon(
+            Icons.notifications_none_outlined,
+            color: Colors.black,
+            size: 25,
+          ),
+          SizedBox(width: 20,)
+          // Image.asset(
+          //   height: 25,
+          //   'images/video-camera.png'),
         ],
+        backgroundColor: const Color(0xffFAFAFA),
       ),
-      body: Center(
-        child: Column(
-          children: [
-            Expanded(
-              child: StreamBuilder(
-                stream: FirebaseFirestore.instance
-                    .collection("User Posts")
-                    .orderBy("TimeStamp", descending: false)
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData) {
-                    return ListView.builder(
-                      itemCount: snapshot.data!.docs.length,
-                      itemBuilder: (context, index) {
-                        final post = snapshot.data!.docs[index];
-                        return WallPost(
-                          message: post['Message'],
-                          user: post['UserEmail'],
-                          postId: post.id,
-                          likes: List<String>.from(post['Likes'] ?? []),
-                        );
-                      },
-                    );
-                  } else if (snapshot.hasError) {
-                    return Center(
-                      child: Text('Error: + ${snapshot.error}'),
-                    );
-                  }
-
-                  return Center(
-                    child: Text('Error:${snapshot.error}'),
-                  );
-                },
-              ),
-            ),
-            
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            StreamBuilder(
+              stream: _firebaseFirestore
+                  .collection('posts')
+                  .orderBy('time', descending: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                return SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      if (!snapshot.hasData) {
+                        return Center(child: CircularProgressIndicator());
+                      }
+                      return WallPost(snapshot.data!.docs[index].data());
+                    },
+                    childCount:
+                        snapshot.data == null ? 0 : snapshot.data!.docs.length,
+                  ),
+                );
+              },
+            )
           ],
         ),
       ),
-      
     );
   }
 }
